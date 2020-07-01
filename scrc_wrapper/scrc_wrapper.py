@@ -3,6 +3,7 @@
 from pathlib import Path
 from typing import Union
 import argparse
+import hashlib
 import io
 import re
 import subprocess
@@ -110,7 +111,7 @@ def main(
 
     api = StandardAPI(config_file)
     parameters["[Initial number of infecteds]"] = int(
-        api.read_estimate("human/infected/number")
+        api.read_estimate("human/infected/number", "initial-infected-number")
     )
 
     preparams_file = output_dir / "preparams_file.txt"
@@ -123,6 +124,12 @@ def main(
     run_covid_sim(
         covidsim, preparams_file, params_file, output_name, population_file, r, threads
     )
+
+    for output in ["age", "severity.adunit", "severity.age", "severity"]:
+        output_file = output_dir / f"results.avNE.{output}.xls"
+        with open(output_file, "rb") as f:
+            sha = hashlib.sha512(f.read()).hexdigest()
+            print(fr"{output_file}\t{sha}")
 
 
 if __name__ == "__main__":
