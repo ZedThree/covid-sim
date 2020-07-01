@@ -1,61 +1,14 @@
 #!/usr/bin/env python3
 
-from collections.abc import Iterable
-from numbers import Number
 from pathlib import Path
 from typing import Union
 import argparse
-import hashlib
+import io
 import re
 import subprocess
 import numpy as np
-import io
+
 from data_pipeline_api.standard_api import StandardAPI
-
-
-# Wrap API
-class CovidSimAPI:
-    """Wrapper to handle translation between CovidSim and StandardAPI
-
-    """
-
-    def __init__(
-        self,
-        config_filename: Union[Path, str],
-        input_filename: str,
-        output_location: str,
-    ):
-        self.api = StandardAPI(config_filename)
-        self.input_filename = Path(input_filename)
-        self.output_location = Path(output_location)
-
-        try:
-            self.input_filename.unlink(missing_ok=True)
-        except IsADirectoryError as e:
-            raise RuntimeError("Input file must not be a directory") from e
-
-    def write_input(self, name: str, data: Union[Iterable, Number]):
-        """Write the (name, data) as a CovidSim input file
-        """
-        with open(self.input_filename, "a") as f:
-            f.write(f"[{name}]")
-            if isinstance(data, Iterable):
-                f.write(" ".join(data))
-            else:
-                f.write(f"{data}")
-
-    def read_estimate(self, data_product: str, translation: str):
-        data = self.api.read_estimate(data_product)
-        self.write_input(translation, data)
-
-    def write_estimate(self, data_product: str, translation: str):
-        # read output_location
-        with open(self.output_location, "r") as f:
-            contents = f.read()
-
-        value = contents.find(translation)
-
-        self.api.write_estimate(data_product, value)
 
 
 PARAMETER_FILE_KEY_VALUE_RE = re.compile(r"(\[[^]]+\])([^[]+)", re.DOTALL)
