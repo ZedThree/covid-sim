@@ -1,2 +1,3 @@
-[point-estimate]
+[initial-infected-number]
+type = "point-estimate"
 value = 100
