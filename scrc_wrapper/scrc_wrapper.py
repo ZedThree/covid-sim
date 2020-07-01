@@ -111,31 +111,37 @@ def main(
 
     parameters = read_base_parameters(base_parameter_file)
 
-    api = StandardAPI(config_file)
-    parameters["[Initial number of infecteds]"] = int(
-        api.read_estimate("human/infected/number", "initial-infected-number")
-    )
-
-    preparams_file = output_dir / "preparams_file.txt"
-    write_parameter_file(preparams_file, parameters)
-
-    # Ensure the parameter file exists
-    params_file = output_dir / "empty.txt"
-    open(params_file, "a").close()
-
-    run_covid_sim(
-        covidsim, preparams_file, params_file, output_name, population_file, r, threads
-    )
-
-    for output in ["age", "severity.adunit", "severity.age", "severity"]:
-        output_file = output_dir / f"results.avNE.{output}.xls"
-        output_table = pd.read_csv(
-            output_file, sep=r"\s+", skipfooter=1, engine="python"
+    with StandardAPI(config_file) as api:
+        parameters["[Initial number of infecteds]"] = int(
+            api.read_estimate("human/infected/number", "initial-infected-number")
         )
-        api.write_table(output, output, output_table)
-        with open(output_file, "rb") as f:
-            sha = hashlib.sha512(f.read()).hexdigest()
-            print(f"{output_file}\t{sha}")
+
+        preparams_file = output_dir / "preparams_file.txt"
+        write_parameter_file(preparams_file, parameters)
+
+        # Ensure the parameter file exists
+        params_file = output_dir / "empty.txt"
+        open(params_file, "a").close()
+
+        run_covid_sim(
+            covidsim,
+            preparams_file,
+            params_file,
+            output_name,
+            population_file,
+            r,
+            threads,
+        )
+
+        for output in ["age", "severity.adunit", "severity.age", "severity"]:
+            output_file = output_dir / f"results.avNE.{output}.xls"
+            output_table = pd.read_csv(
+                output_file, sep=r"\s+", skipfooter=1, engine="python"
+            )
+            api.write_table(output, output, output_table)
+            with open(output_file, "rb") as f:
+                sha = hashlib.sha512(f.read()).hexdigest()
+                print(f"{output_file}\t{sha}")
 
 
 if __name__ == "__main__":
