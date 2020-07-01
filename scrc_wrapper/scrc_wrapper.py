@@ -7,7 +7,9 @@ import hashlib
 import io
 import re
 import subprocess
+
 import numpy as np
+import pandas as pd
 
 from data_pipeline_api.standard_api import StandardAPI
 
@@ -127,9 +129,13 @@ def main(
 
     for output in ["age", "severity.adunit", "severity.age", "severity"]:
         output_file = output_dir / f"results.avNE.{output}.xls"
+        output_table = pd.read_csv(
+            output_file, sep=r"\s+", skipfooter=1, engine="python"
+        )
+        api.write_table(output, output, output_table)
         with open(output_file, "rb") as f:
             sha = hashlib.sha512(f.read()).hexdigest()
-            print(fr"{output_file}\t{sha}")
+            print(f"{output_file}\t{sha}")
 
 
 if __name__ == "__main__":

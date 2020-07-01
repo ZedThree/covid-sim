@@ -7,3 +7,21 @@ read:
       data_product: human/infected/number
     use:
       filename: initial_infected_number.toml
+
+write:
+  - where:
+      data_product: age
+    use:
+      filename: output_age.h5
+  - where:
+      data_product: severity.adunit
+    use:
+      filename: output_severity.adunit.h5
+  - where:
+      data_product: severity.age
+    use:
+      filename: output_severity.age.h5
+  - where:
+      data_product: severity
+    use:
+      filename: output_severity.h5
