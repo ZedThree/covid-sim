@@ -1,0 +1,5 @@
+-
+  data_product: human/infected/number
+  version: 1.0.0
+  extension: csv
+  filename: initial_infected_number.csv

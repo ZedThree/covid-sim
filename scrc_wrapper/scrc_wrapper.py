@@ -98,8 +98,19 @@ def write_parameter_file(filename: str, parameters: dict):
 
 
 def run_covid_sim(
-    covidsim, preparams_file, output_path, population_file, r, threads=2, seeds=None
+    covidsim,
+    preparams_file,
+    params_file,
+    output_path,
+    population_file,
+    r,
+    threads=2,
+    seeds=None,
 ):
+    """Wrap calling the covidsim executable
+
+    """
+
     if seeds is None:
         seeds = [98798150, 729101, 17389101, 4797132]
 
@@ -108,7 +119,7 @@ def run_covid_sim(
         f"/c:{threads}",
         "/BM:bmp",
         f"/PP:{preparams_file}",
-        "/P:empty.txt",
+        f"/P:{params_file}",
         f"/O:{output_path}",
         f"/D:{population_file}",
         f"/R:{r}",
@@ -118,9 +129,6 @@ def run_covid_sim(
     subprocess.run(command, check=True)
 
 
-# Command line: /home/peter/Codes/Covid/covid-sim/build/src/CovidSim /c:2 /BM:bmp /PP:pre-params.txt /P:input-noint-params.txt /O:results-noint /D:pop.txt /M:pop.bin /A:admin-params.txt /S:network.bin /R:1.5 98798150 729101 17389101 4797132
-
-
 def main(
     output_dir: Union[str, Path],
     covidsim: Union[str, Path],
@@ -128,20 +136,39 @@ def main(
     population_file: Union[str, Path],
     r: float,
     threads: int,
+    config_file: str,
 ):
-    # Read the data from the API
-    # Write the data to the expected input file
-    # Run the simulation
-    # Read in the output files
-    # Write the data to the API
+    """Main driver for covidsim
+
+    - Read the data from the API
+    - Write the data to the expected input file
+    - Run the simulation
+    - Read in the output files
+    - Write the data to the API
+
+    """
 
     if not isinstance(output_dir, Path):
         output_dir = Path(output_dir)
     output_dir.mkdir()
     output_name = output_dir / "results"
 
+    parameters = read_base_parameters(base_parameter_file)
+
+    api = StandardAPI(config_file)
+    parameters["[Initial number of infecteds]"] = int(
+        api.read_estimate("human/infected/number")
+    )
+
+    preparams_file = output_dir / "preparams_file.txt"
+    write_parameter_file(preparams_file, parameters)
+
+    # Ensure the parameter file exists
+    params_file = output_dir / "empty.txt"
+    open(params_file, "a").close()
+
     run_covid_sim(
-        covidsim, base_parameter_file, output_name, population_file, r, threads
+        covidsim, preparams_file, params_file, output_name, population_file, r, threads
     )
 
 
@@ -164,6 +191,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--reproduction-rate", "-r", help="Reproduction rate", type=float
     )
+    parser.add_argument(
+        "--config",
+        "-c",
+        type=str,
+        help="Datapipeline config file",
+        default="config.yaml",
+    )
 
     args = parser.parse_args()
 
@@ -174,4 +208,5 @@ if __name__ == "__main__":
         population_file=args.population,
         threads=args.threads,
         r=args.reproduction_rate,
+        config_file=args.config,
     )

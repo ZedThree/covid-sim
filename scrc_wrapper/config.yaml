@@ -1,0 +1,9 @@
+data_directory: .
+access_log: access-{run_id}.yaml
+fail_on_hash_mismatch: False
+
+read:
+  - where:
+      data_product: human/infected/number
+    use:
+      filename: initial_infected_number.toml
